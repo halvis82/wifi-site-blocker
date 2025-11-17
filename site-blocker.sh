@@ -78,6 +78,22 @@ parse_settings() {
     done <<< "$settings_output"
 }
 
+# Function to expand domain to common subdomains
+expand_domain() {
+    local domain="$1"
+
+    # Common subdomains to block automatically
+    local subdomains=("" "www" "m" "mobile")
+
+    for subdomain in "${subdomains[@]}"; do
+        if [ -z "$subdomain" ]; then
+            echo "$domain"
+        else
+            echo "$subdomain.$domain"
+        fi
+    done
+}
+
 # Function to add site blocking to hosts file
 enable_blocking() {
     local sites_to_block=("$@")
@@ -99,11 +115,10 @@ enable_blocking() {
     echo "$MARKER_START" > "$TEMP_FILE"
 
     for domain in "${sites_to_block[@]}"; do
-        echo "0.0.0.0 $domain" >> "$TEMP_FILE"
-        # Also block www. version if not already specified
-        if [[ ! "$domain" =~ ^www\. ]]; then
-            echo "0.0.0.0 www.$domain" >> "$TEMP_FILE"
-        fi
+        # Automatically expand domain to common subdomains
+        while IFS= read -r expanded; do
+            echo "0.0.0.0 $expanded" >> "$TEMP_FILE"
+        done < <(expand_domain "$domain")
     done
 
     echo "$MARKER_END" >> "$TEMP_FILE"

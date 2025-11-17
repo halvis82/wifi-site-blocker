@@ -4,7 +4,7 @@ Block distracting websites based on which WiFi network you're connected to.
 
 **Example:** Block YouTube when you're at home, but allow it at coffee shops. Block Instagram everywhere.
 
-Works system-wide across all browsers and apps. Can't be bypassed by switching browsers or using incognito mode.
+**System-level blocking** - Works independently of your browser. Blocks sites in Chrome, Firefox, Safari, Edge, and all other apps. Can't be bypassed by switching browsers, using incognito mode, or disabling extensions.
 
 ## Quick Start
 
@@ -89,6 +89,17 @@ The installer creates this default `settings.json`:
 2. **`network_specific_blocking.sites`** - Sites to block ONLY when on the specified networks
 3. **`always_block.sites`** - Sites to block on ANY network, regardless of WiFi
 
+### Auto-Expansion
+
+**Just type the base domain** - the script automatically blocks common subdomains:
+
+Type: `"reddit.com"`
+Blocks: `reddit.com`, `www.reddit.com`, `m.reddit.com`, `mobile.reddit.com`
+
+**No need to list www, m, or mobile versions manually!**
+
+**Note:** For sites like YouTube, you still need to list CDN domains (like `googlevideo.com`) separately since they're different domains. See examples below.
+
 ### Editing Configuration
 
 The settings file is installed to `/usr/local/etc/wifi-site-blocker/settings.json`
@@ -107,18 +118,44 @@ sudo launchctl kickstart -k system/com.wifi-site-blocker
 
 ### Example Use Cases
 
-**Block YouTube only at home:**
+**Simple blocking:**
 ```json
 {
   "network_specific_blocking": {
     "ssids": ["YourHomeWiFi"],
-    "sites": ["youtube.com", "www.youtube.com"]
+    "sites": ["reddit.com", "twitter.com"]
+  },
+  "always_block": {
+    "sites": ["instagram.com"]
+  }
+}
+```
+This automatically blocks `www.reddit.com`, `m.reddit.com`, `mobile.reddit.com`, etc.
+
+**Comprehensive YouTube blocking** (needs extra domains for CDNs):
+```json
+{
+  "network_specific_blocking": {
+    "ssids": ["YourHomeWiFi"],
+    "sites": [
+      "youtube.com",
+      "youtubei.googleapis.com",
+      "youtube.googleapis.com",
+      "youtube-nocookie.com",
+      "youtu.be",
+      "i.ytimg.com",
+      "s.ytimg.com",
+      "yt3.ggpht.com",
+      "googlevideo.com",
+      "video.google.com"
+    ]
   },
   "always_block": {
     "sites": []
   }
 }
 ```
+YouTube uses multiple CDN domains that need to be blocked separately.
 
 **Block social media everywhere:**
 ```json
@@ -128,25 +165,7 @@ sudo launchctl kickstart -k system/com.wifi-site-blocker
     "sites": []
   },
   "always_block": {
-    "sites": [
-      "facebook.com",
-      "twitter.com",
-      "instagram.com",
-      "tiktok.com"
-    ]
-  }
-}
-```
-
-**Hybrid approach:**
-```json
-{
-  "network_specific_blocking": {
-    "ssids": ["YourHomeWiFi", "YourOfficeWiFi"],
-    "sites": ["youtube.com", "netflix.com"]
-  },
-  "always_block": {
-    "sites": ["gambling-site.com"]
+    "sites": ["reddit.com", "twitter.com", "facebook.com"]
   }
 }
 ```
