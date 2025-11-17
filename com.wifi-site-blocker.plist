@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.wifi-site-blocker</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/local/bin/site-blocker.sh</string>
+    </array>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>WatchPaths</key>
+    <array>
+        <string>/Library/Preferences/SystemConfiguration/com.apple.airport.preferences.plist</string>
+    </array>
+
+    <key>StandardOutPath</key>
+    <string>/tmp/wifi-site-blocker.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/tmp/wifi-site-blocker-error.log</string>
+</dict>
+</plist>
