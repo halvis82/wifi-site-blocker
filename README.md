@@ -1,23 +1,29 @@
 # WiFi Site Blocker
 
-A flexible system-level website blocker for macOS with WiFi-aware blocking capabilities.
+Block distracting websites based on which WiFi network you're connected to.
 
-## What It Does
+**Example:** Block YouTube when you're at home, but allow it at coffee shops. Block Instagram everywhere.
 
-- **Blocks websites system-wide** - Works across all browsers and applications
-- **WiFi-aware blocking** - Block specific sites only when connected to certain networks
-- **Always-block list** - Block sites on any network
-- **Configurable via JSON** - Easy to edit settings without touching code
-- **Automatic** - Runs as a background service, no manual intervention needed
-- **Persistent** - Starts on boot and monitors network changes
-- **Hard to bypass** - No browser extensions to disable, works at the OS level
+Works system-wide across all browsers and apps. Can't be bypassed by switching browsers or using incognito mode.
+
+## Quick Start
+
+1. Run `sudo ./install.sh`
+2. Edit `settings.json` to add your WiFi network name and sites to block
+3. Run `sudo ./install.sh` again
+4. Done! Sites are now blocked based on your WiFi
+
+## Features
+
+- **WiFi-aware** - Block sites only on specific networks (home, work, etc.)
+- **Always-block list** - Block sites on ANY network
+- **System-level** - Works in all browsers, apps, can't be easily disabled
+- **Automatic** - Runs in background, activates when you change WiFi
+- **Zero performance impact** - Event-driven, not polling
 
 ## How It Works
 
-1. A LaunchDaemon monitors your WiFi connection for changes
-2. The script reads `settings.json` to determine which sites to block
-3. Sites are blocked by modifying `/etc/hosts` to redirect them to `0.0.0.0`
-4. DNS cache is automatically flushed when changes are made
+Monitors your WiFi connection. When you connect to a network in your config, it blocks specified sites by modifying `/etc/hosts`. When you switch networks, blocking rules update automatically.
 
 ## Installation
 
