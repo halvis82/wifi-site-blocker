@@ -118,6 +118,7 @@ enable_blocking() {
         # Automatically expand domain to common subdomains
         while IFS= read -r expanded; do
             echo "0.0.0.0 $expanded" >> "$TEMP_FILE"
+            echo "::1 $expanded" >> "$TEMP_FILE"
         done < <(expand_domain "$domain")
     done
 
