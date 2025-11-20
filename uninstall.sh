@@ -60,6 +60,8 @@ fi
 
 dscacheutil -flushcache
 killall -HUP mDNSResponder 2>/dev/null || true
+discoveryutil mdnsflushcache 2>/dev/null || true
+discoveryutil udnsflushcaches 2>/dev/null || true
 
 # Step 6: Remove logs
 echo "→ Removing logs..."

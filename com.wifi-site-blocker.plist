@@ -7,6 +7,7 @@
 
     <key>ProgramArguments</key>
     <array>
+        <string>/bin/bash</string>
         <string>/usr/local/bin/site-blocker.sh</string>
     </array>
 
@@ -17,6 +18,9 @@
     <array>
         <string>/Library/Preferences/SystemConfiguration/com.apple.airport.preferences.plist</string>
     </array>
+
+    <key>StartInterval</key>
+    <integer>30</integer>
 
     <key>StandardOutPath</key>
     <string>/tmp/wifi-site-blocker.log</string>
