@@ -4,6 +4,7 @@
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 SETTINGS_FILE="$SCRIPT_DIR/settings.json"
 HOSTS_FILE="/etc/hosts"
+LAST_SSID_FILE="/tmp/wifi-site-blocker-last-ssid"
 MARKER_START="# WIFI-SITE-BLOCKER-START"
 MARKER_END="# WIFI-SITE-BLOCKER-END"
 
@@ -24,13 +25,18 @@ get_currently_blocked_domains() {
         return
     fi
 
-    # Extract domains between markers (only the base domains, not subdomains)
+    # Extract domains between markers (only the base domains, not subdomains or DoH servers)
     sed -n "/$MARKER_START/,/$MARKER_END/p" "$HOSTS_FILE" | \
         grep "^0.0.0.0" | \
         awk '{print $2}' | \
         grep -v "^www\." | \
         grep -v "^m\." | \
         grep -v "^mobile\." | \
+        grep -v "dns\." | \
+        grep -v "doh\." | \
+        grep -v "cloudflare-dns" | \
+        grep -v "8888.google" | \
+        grep -v "1dot1dot1dot1" | \
         sort | \
         tr '\n' ' '
 }
@@ -47,34 +53,35 @@ flush_dns() {
 restart_browsers() {
     # List of common browsers to restart
     local browsers=("Google Chrome" "Safari" "Firefox" "Brave Browser" "Microsoft Edge" "Arc" "Opera")
-    local restarted=false
+    local running_browsers=()
 
+    # First, find which browsers are actually running
     for browser in "${browsers[@]}"; do
         if pgrep -x "$browser" > /dev/null 2>&1; then
-            echo "Restarting $browser to kill persistent connections..."
-
-            # Quit browser gracefully
-            osascript -e "quit app \"$browser\"" 2>/dev/null
-
-            restarted=true
+            running_browsers+=("$browser")
         fi
     done
 
-    if [ "$restarted" = true ]; then
-        # Wait for browsers to fully quit
-        sleep 2
-
-        # Reopen the browsers that were closed
-        for browser in "${browsers[@]}"; do
-            # Check if browser was running by seeing if it just quit
-            if ! pgrep -x "$browser" > /dev/null 2>&1; then
-                # Try to reopen (will only work if browser exists on system)
-                open -a "$browser" 2>/dev/null &
-            fi
-        done
-
-        echo "Browsers restarted"
+    # If no browsers running, do nothing
+    if [ ${#running_browsers[@]} -eq 0 ]; then
+        return
     fi
+
+    # Quit the running browsers
+    for browser in "${running_browsers[@]}"; do
+        echo "Restarting $browser to kill persistent connections..."
+        osascript -e "quit app \"$browser\"" 2>/dev/null
+    done
+
+    # Wait for browsers to fully quit
+    sleep 3
+
+    # Reopen ONLY the browsers that were running
+    for browser in "${running_browsers[@]}"; do
+        open -a "$browser" 2>/dev/null &
+    done
+
+    echo "Browsers restarted"
 }
 
 # Function to check if blocking state matches desired state
@@ -240,11 +247,6 @@ enable_blocking() {
     # Flush DNS cache
     flush_dns
 
-    # Restart browsers if setting is enabled
-    if [ "$RESTART_BROWSERS" = "true" ]; then
-        restart_browsers
-    fi
-
     if [ "$block_doh" = "true" ]; then
         echo "Blocking enabled for ${#sites_to_block[@]} sites + DoH servers"
     else
@@ -266,16 +268,24 @@ disable_blocking() {
     # Flush DNS cache
     flush_dns
 
-    # Restart browsers if setting is enabled
-    if [ "$RESTART_BROWSERS" = "true" ]; then
-        restart_browsers
-    fi
-
     echo "Blocking removed"
 }
 
 # Main logic
 CURRENT_SSID=$(get_current_ssid)
+
+# Check if network actually changed
+LAST_SSID=""
+if [ -f "$LAST_SSID_FILE" ]; then
+    LAST_SSID=$(cat "$LAST_SSID_FILE")
+fi
+
+NETWORK_CHANGED=false
+if [ "$CURRENT_SSID" != "$LAST_SSID" ]; then
+    NETWORK_CHANGED=true
+    echo "$CURRENT_SSID" > "$LAST_SSID_FILE"
+    echo "Network changed: $LAST_SSID -> $CURRENT_SSID"
+fi
 
 # Read settings
 declare -a BLOCKING_SSIDS
@@ -329,4 +339,9 @@ else
         # Even if already disabled, flush DNS to ensure caches are clear
         flush_dns
     fi
+fi
+
+# ONLY restart browsers when network actually changed
+if [ "$NETWORK_CHANGED" = true ] && [ "$RESTART_BROWSERS" = "true" ]; then
+    restart_browsers
 fi
