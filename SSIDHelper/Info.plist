@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleIdentifier</key>
+    <string>com.wifi-site-blocker.ssid-helper</string>
+    <key>CFBundleName</key>
+    <string>SSIDHelper</string>
+    <key>CFBundleExecutable</key>
+    <string>SSIDHelper</string>
+    <key>CFBundleVersion</key>
+    <string>1.0</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>LSUIElement</key>
+    <true/>
+    <key>NSLocationUsageDescription</key>
+    <string>WiFi Site Blocker needs location access to detect which WiFi network you are connected to.</string>
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>WiFi Site Blocker needs location access to detect which WiFi network you are connected to.</string>
+    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+    <string>WiFi Site Blocker needs location access to detect which WiFi network you are connected to.</string>
+</dict>
+</plist>

@@ -9,8 +9,37 @@ MARKER_START="# WIFI-SITE-BLOCKER-START"
 MARKER_END="# WIFI-SITE-BLOCKER-END"
 
 # Function to get current SSID
+# Uses multiple methods for compatibility across macOS versions
 get_current_ssid() {
-    system_profiler SPAirPortDataType 2>/dev/null | awk '/Current Network Information:/{getline; gsub(/^[ \t]+|:$/, ""); print; exit}'
+    local ssid=""
+
+    # Method 1: Extract from scutil's CachedScanRecord (works on macOS Sequoia without Location Services)
+    # This extracts the SSID from the binary plist stored in the AirPort state
+    ssid=$(scutil << 'SCUTILEOF' 2>/dev/null | sed -n 's/.*CachedScanRecord : <data> 0x//p' | xxd -r -p 2>/dev/null | plutil -convert xml1 -o - - 2>/dev/null | grep -A1 '</data>' | grep '<string>' | head -1 | sed 's/.*<string>//;s/<\/string>.*//'
+show State:/Network/Interface/en0/AirPort
+SCUTILEOF
+)
+    if [ -n "$ssid" ] && [ "$ssid" != "<redacted>" ]; then
+        echo "$ssid"
+        return
+    fi
+
+    # Method 2: networksetup (works on older macOS versions)
+    ssid=$(networksetup -getairportnetwork en0 2>/dev/null | awk -F': ' '{print $2}')
+    if [ -n "$ssid" ] && [ "$ssid" != "You are not associated with an AirPort network." ]; then
+        echo "$ssid"
+        return
+    fi
+
+    # Method 3: system_profiler (fallback, often redacted on Sequoia)
+    ssid=$(system_profiler SPAirPortDataType 2>/dev/null | awk '/Current Network Information:/{getline; gsub(/^[ \t]+|:$/, ""); print; exit}')
+    if [ -n "$ssid" ] && [ "$ssid" != "<redacted>" ]; then
+        echo "$ssid"
+        return
+    fi
+
+    # No SSID found
+    echo ""
 }
 
 # Function to check if blocking is active in hosts file
