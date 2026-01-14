@@ -370,7 +370,7 @@ else
     fi
 fi
 
-# ONLY restart browsers when network actually changed
-if [ "$NETWORK_CHANGED" = true ] && [ "$RESTART_BROWSERS" = "true" ]; then
+# ONLY restart browsers when network changed AND we're on a blocking network
+if [ "$NETWORK_CHANGED" = true ] && [ "$RESTART_BROWSERS" = "true" ] && [ "$on_blocking_network" = true ]; then
     restart_browsers
 fi
